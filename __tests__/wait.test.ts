@@ -53,8 +53,7 @@ describe("wait", () => {
           input,
           (message: string) => {
             messages.push(message);
-          },
-          () => {}
+          }
         );
         assert.equal(await waiter.wait(), 1);
         assert.deepEqual(messages, [
@@ -89,8 +88,7 @@ describe("wait", () => {
           input,
           (message: string) => {
             messages.push(message);
-          },
-          () => {}
+          }
         );
         await assert.rejects(waiter.wait(), {
           name: "Error",
@@ -127,8 +125,7 @@ describe("wait", () => {
           input,
           (message: string) => {
             messages.push(message);
-          },
-          () => {}
+          }
         );
         await waiter.wait();
         assert.deepEqual(messages, ["✋Awaiting run 1 ..."]);
@@ -187,8 +184,7 @@ describe("wait", () => {
           input,
           (message: string) => {
             messages.push(message);
-          },
-          () => {}
+          }
         );
         await waiter.wait();
         // Verify that the last message printed is that the latest previous run

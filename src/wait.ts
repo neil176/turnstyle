@@ -17,7 +17,7 @@ export class Waiter implements Wait {
     workflowId: any,
     githubClient: GitHub,
     input: Input,
-    info: (msg: string) => void,
+    info: (msg: string) => void
     // debug: (msg: string) => void
   ) {
     this.workflowId = workflowId;
@@ -56,7 +56,9 @@ export class Waiter implements Wait {
 
     this.info(`Found ${runs.length} ${this.workflowId} runs`);
     const previousRuns = runs
-      .filter((run) => run.id < this.input.runId)
+      .filter((run) => {
+        return run.id < this.input.runId && run.conclusion != null
+      })
       .sort((a, b) => b.id - a.id);
     if (!previousRuns || !previousRuns.length) {
       setOutput("force_continued", "");
@@ -65,8 +67,11 @@ export class Waiter implements Wait {
       this.info(`Found ${previousRuns.length} previous runs`);
     }
 
-    const previousRun = previousRuns[0];
-    this.info(`✋Awaiting run ${previousRun.html_url} ...`);
+    this.info('still waiting')
+    previousRuns.forEach(run => {
+      this.info(`✋Awaiting run ${run.html_url} ...`);
+    });
+
     await new Promise((resolve) =>
       setTimeout(resolve, this.input.pollIntervalSeconds * 1000)
     );

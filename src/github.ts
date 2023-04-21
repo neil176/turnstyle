@@ -1,8 +1,9 @@
 import { Octokit } from "@octokit/rest";
 import { Endpoints } from "@octokit/types";
-import {  warning, info } from "@actions/core";
+import { warning, info } from "@actions/core";
 
-type Options = Endpoints["GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs"]["parameters"];
+type Options =
+  Endpoints["GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs"]["parameters"];
 
 export class OctokitGitHub {
   private readonly octokit: Octokit;
@@ -42,42 +43,29 @@ export class OctokitGitHub {
     branch: string | undefined,
     workflow_id: number
   ) => {
-    const options: Options =
-      {
-        owner,
-        repo,
-        workflow_id,
-        // "completed" | "action_required" | "cancelled" | "failure" | "neutral" | "skipped" | "stale" | "success" | "timed_out" | "in_progress" | "queued" | "requested" | "waiting"
-        // status: "in_progress",
-      };
+    const THREE_HOURS_AGO = new Date(Date.now() - (1000 * 60 * 60 * 3))
+    const options: Options = {
+      owner,
+      repo,
+      workflow_id,
+      created: '>' + THREE_HOURS_AGO.toISOString()
+      // "completed" | "action_required" | "cancelled" | "failure" | "neutral" | "skipped" | "stale" | "success" | "timed_out" | "in_progress" | "queued" | "requested" | "waiting"
+      // status: "in_progress",
+    };
 
     if (branch) {
       options.branch = branch;
     }
-    const inProgressOptions: Options = {
-      ...options,
-      status: 'in_progress',
-    };
 
-    const queuedOptions: Options = {
-      ...options,
-      status: 'queued',
-    }
-
-    const inProgressRuns = await this.octokit.paginate(
+    const recentRuns = await this.octokit.paginate(
       this.octokit.actions.listWorkflowRuns,
-      inProgressOptions
+      options
     );
 
-    const queuedRuns = await this.octokit.paginate(
-      this.octokit.actions.listWorkflowRuns,
-      queuedOptions
-    );
 
-    return [
-      ...inProgressRuns,
-      ...queuedRuns,
-    ]
+    info(`Found ${recentRuns.length} recent runs`);
+    info(JSON.stringify(recentRuns, null, 2));
 
+    return recentRuns;
   };
 }
