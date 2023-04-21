@@ -64,7 +64,13 @@ export class OctokitGitHub {
 
 
     info(`Found ${recentRuns.length} recent runs`);
-    info(JSON.stringify(recentRuns, null, 2));
+    const runsForLog = recentRuns.map( r=> ({
+      conclusion: r.conclusion,
+      id: r.id,
+      created_at: r.created_at,
+      status: r.status
+    }))
+    info(JSON.stringify(runsForLog, null, 2));
 
     return recentRuns;
   };
