@@ -1,6 +1,8 @@
 import { Octokit } from "@octokit/rest";
 import { Endpoints } from "@octokit/types";
-import { debug, warning } from "@actions/core";
+import {  warning, info } from "@actions/core";
+
+type Options = Endpoints["GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs"]["parameters"];
 
 export class OctokitGitHub {
   private readonly octokit: Octokit;
@@ -16,13 +18,13 @@ export class OctokitGitHub {
 
           if (options.request.retryCount === 0) {
             // only retries once
-            debug(`Retrying after ${retryAfter} seconds!`);
+            info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
         onAbuseLimit: (retryAfter, options) => {
           // does not retry, only logs a warning
-          debug(`Abuse detected for request ${options.method} ${options.url}`);
+          info(`Abuse detected for request ${options.method} ${options.url}`);
         },
       },
     });
@@ -40,21 +42,42 @@ export class OctokitGitHub {
     branch: string | undefined,
     workflow_id: number
   ) => {
-    const options: Endpoints["GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs"]["parameters"] =
+    const options: Options =
       {
         owner,
         repo,
         workflow_id,
-        status: "in_progress",
+        // "completed" | "action_required" | "cancelled" | "failure" | "neutral" | "skipped" | "stale" | "success" | "timed_out" | "in_progress" | "queued" | "requested" | "waiting"
+        // status: "in_progress",
       };
 
     if (branch) {
       options.branch = branch;
     }
+    const inProgressOptions: Options = {
+      ...options,
+      status: 'in_progress',
+    };
 
-    return this.octokit.paginate(
+    const queuedOptions: Options = {
+      ...options,
+      status: 'queued',
+    }
+
+    const inProgressRuns = await this.octokit.paginate(
       this.octokit.actions.listWorkflowRuns,
-      options
+      inProgressOptions
     );
+
+    const queuedRuns = await this.octokit.paginate(
+      this.octokit.actions.listWorkflowRuns,
+      queuedOptions
+    );
+
+    return [
+      ...inProgressRuns,
+      ...queuedRuns,
+    ]
+
   };
 }

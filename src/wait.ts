@@ -8,7 +8,7 @@ export interface Wait {
 
 export class Waiter implements Wait {
   private readonly info: (msg: string) => void;
-  private readonly debug: (msg: string) => void;
+  // private readonly debug: (msg: string) => void;
   private input: Input;
   private githubClient: GitHub;
   private readonly workflowId: any;
@@ -18,13 +18,13 @@ export class Waiter implements Wait {
     githubClient: GitHub,
     input: Input,
     info: (msg: string) => void,
-    debug: (msg: string) => void
+    // debug: (msg: string) => void
   ) {
     this.workflowId = workflowId;
     this.input = input;
     this.githubClient = githubClient;
     this.info = info;
-    this.debug = debug;
+    // this.debug = debug;
   }
 
   wait = async (secondsSoFar?: number) => {
@@ -46,7 +46,7 @@ export class Waiter implements Wait {
       throw new Error(`Aborted after waiting ${secondsSoFar} seconds`);
     }
 
-    this.debug(`Fetching workflow runs for workflow ID: ${this.workflowId}`);
+    this.info(`Fetching workflow runs for workflow ID: ${this.workflowId}`);
     const runs = await this.githubClient.runs(
       this.input.owner,
       this.input.repo,
@@ -54,7 +54,7 @@ export class Waiter implements Wait {
       this.workflowId
     );
 
-    this.debug(`Found ${runs.length} ${this.workflowId} runs`);
+    this.info(`Found ${runs.length} ${this.workflowId} runs`);
     const previousRuns = runs
       .filter((run) => run.id < this.input.runId)
       .sort((a, b) => b.id - a.id);
@@ -62,7 +62,7 @@ export class Waiter implements Wait {
       setOutput("force_continued", "");
       return;
     } else {
-      this.debug(`Found ${previousRuns.length} previous runs`);
+      this.info(`Found ${previousRuns.length} previous runs`);
     }
 
     const previousRun = previousRuns[0];

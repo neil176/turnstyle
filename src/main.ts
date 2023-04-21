@@ -13,16 +13,16 @@ async function run() {
       )}`
     );
     const github = new OctokitGitHub(input.githubToken);
-    debug(`Fetching workflows for ${input.owner}/${input.repo}...`);
+    info(`Fetching workflows for ${input.owner}/${input.repo}...`);
     const workflows = await github.workflows(input.owner, input.repo);
-    debug(
+    info(
       `Found ${workflows.length} workflows in ${input.owner}/${input.repo}`
     );
     const workflow_id = workflows.find(
       (workflow) => workflow.name == input.workflowName
     )?.id;
     if (workflow_id) {
-      await new Waiter(workflow_id, github, input, info, debug).wait();
+      await new Waiter(workflow_id, github, input, info).wait();
     } else {
       setFailed(`No workflow found matching workflow_id: ${workflow_id}`);
     }
