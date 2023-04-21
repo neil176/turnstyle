@@ -57,7 +57,7 @@ export class Waiter implements Wait {
     this.info(`Found ${runs.length} ${this.workflowId} runs`);
     const previousRuns = runs
       .filter((run) => {
-        return run.id < this.input.runId && run.conclusion != null
+        return run.id < this.input.runId && run.conclusion == null
       })
       .sort((a, b) => b.id - a.id);
     if (!previousRuns || !previousRuns.length) {
